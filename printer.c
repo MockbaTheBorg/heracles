@@ -323,7 +323,12 @@ static BYTE SpaceLines( DEVBLK* dev, BYTE* unitstat, int spaceamt )
 
     if (!(len = spaceamt))
     {
-        buf = "\r";
+        if (dev->crlf & 0x02) { // Mockba
+            buf = "\n";
+        }
+		else {
+            buf = "\r";
+		}
         len = 1;
     }
     else
@@ -457,7 +462,7 @@ static BYTE WriteLine
             if (write_buffer( dev, (char*) dev->buf, i, unitstat ) != 0)
                 return *unitstat; /* (I/O error) */
 
-            if (dev->crlf)
+            if (dev->crlf & 0x01) // Mockba
                 if (write_buffer( dev, "\r", 1, unitstat ) != 0)
                     return *unitstat; /* (I/O error) */
         }
@@ -1218,9 +1223,15 @@ int   fcbsize;                          /* FCB size for this devtype */
             continue;
         } /* "cctape=" */
 
-        if (strcasecmp( argv[ iarg ], "crlf" ) == 0)
+        if (strcasecmp(argv[iarg], "crlf") == 0) // Mockba
         {
-            dev->crlf = 1;
+            dev->crlf |= 0x01;
+            continue;
+        }
+
+        if (strcasecmp(argv[iarg], "nocr") == 0) // Mockba
+        {
+            dev->crlf |= 0x02;
             continue;
         }
 
@@ -1564,7 +1575,7 @@ int   fcbsize;                          /* FCB size for this devtype */
 
     /* Check for incompatible options... */
 
-    if (sockdev && dev->crlf)
+    if (sockdev && (dev->crlf & 0x01)) // Mockba
     {
         // "%1d:%04X Printer: option %s is incompatible"
         WRMSG( HHC01104, "E", LCSS_DEVNUM,
@@ -1606,12 +1617,13 @@ static void printer_query_device (DEVBLK *dev, char **devclass,
 
     BEGIN_DEVICE_CLASS_QUERY( "PRT", dev, devclass, buflen, buffer );
 
-    snprintf (buffer, buflen, "%s%s%s%s%s IO[%"PRIu64"]",
+    snprintf (buffer, buflen, "%s%s%s%s%s%s IO[%"PRIu64"]", // Mockba
                  filename,
-                (dev->bs      ? " sockdev"   : ""),
-                (dev->crlf    ? " crlf"      : ""),
-                (dev->append  ? " append"    : ""),
-                (dev->stopdev ? " (stopped)" : ""),
+                (dev->bs          ? " sockdev"   : ""),
+                (dev->crlf & 0x01 ? " crlf"      : ""),
+                (dev->crlf & 0x02 ? " nocr"      : ""),
+                (dev->append      ? " append"    : ""),
+                (dev->stopdev     ? " (stopped)" : ""),
                  dev->excps );
 
 } /* end function printer_query_device */

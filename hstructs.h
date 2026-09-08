@@ -1761,7 +1761,7 @@ struct DEVBLK {                         /* Device configuration block*/
         int     printrem;               /* Number of bytes remaining
                                            in print buffer           */
         pid_t   ptpcpid;                /* print-to-pipe child pid   */
-        u_int   crlf:1;                 /* 1=CRLF delimiters, 0=LF   */
+        u_int   crlf:2;                 /* 1=CRLF delimiters, 0=LF   */ //Mockba
         u_int   ispiped:1;              /* 1=Piped device            */
         u_int   stopdev:1;              /* T=stopped; F=started      */
         u_int   fcbcheck:1;             /* 1=signal FCB errors, else
