@@ -1372,6 +1372,11 @@ void cgibin_api_v1_version(WEBBLK *webblk)
 /*          "AR0": "00000000",                                       */
 /*          ...                                                      */
 /*          "AR15": "00000000"                                       */
+/*      },                                                           */
+/*      "floating_point_registers": {                                */
+/*          "FPR0": "0000000000000000",                              */
+/*          ...                                                      */
+/*          "FPR15": "0000000000000000"                              */
 /*      }                                                            */
 /*    }, {                                                           */
 /*      "cpuid": "CPU0001",                                          */
@@ -1387,6 +1392,9 @@ void cgibin_api_v1_version(WEBBLK *webblk)
 /*      },                                                           */
 /*      "access_registers": {                                        */
 /*          "AR0": "00000000", ...                                   */
+/*      },                                                           */
+/*      "floating_point_registers": {                                */
+/*          "FPR0": "0000000000000000", ...                          */
 /*      }                                                            */
 /*    }                                                              */
 /*     ]                                                             */
@@ -1396,7 +1404,7 @@ void cgibin_api_v1_cpus(WEBBLK *webblk)
 {
     REGS*  regs;
     QWORD  psw;
-    int    cpu, gpr, cr, ar;
+    int    cpu, gpr, cr, ar, fpr;
 
     json_header( webblk );
     hprintf( webblk->sock,"{\"cpus\":[");
@@ -1470,6 +1478,16 @@ void cgibin_api_v1_cpus(WEBBLK *webblk)
             hprintf( webblk->sock, "\"AR%d\": \"%8.8X\"", ar, regs->AR( ar ));
 
             if (ar < 15)
+                hprintf( webblk->sock,","); //  JSON doesn't allow trailing commas
+        }
+        hprintf( webblk->sock, "},");
+
+        hprintf( webblk->sock, "\"floating_point_registers\":{");
+        for (fpr=0; fpr < 16; fpr++)
+        {
+            hprintf( webblk->sock, "\"FPR%d\": \"%16.16"PRIX64"\"", fpr, (U64) regs->FPR_L( fpr ));
+
+            if (fpr < 15)
                 hprintf( webblk->sock,","); //  JSON doesn't allow trailing commas
         }
         hprintf( webblk->sock, "}");
