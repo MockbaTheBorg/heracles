@@ -97,12 +97,18 @@ static int TUNTAP_SetMode (int fd, struct hifr *hifr, int iFlags)
     int rc;
 
     /* Try TUNTAP_ioctl first */
-    rc = TUNTAP_IOCtl (fd, TUNSETIFF, (char *) hifr);
+    do
+        rc = TUNTAP_IOCtl (fd, TUNSETIFF, (char *) hifr);
+    while (0 > rc && EINTR == errno);
 
 #if !defined( OPTION_W32_CTCI )
     /* If invalid value, try with the pre-2.4.5 value */
     if (0 > rc && errno == EINVAL)
-        rc = TUNTAP_IOCtl (fd, ('T' << 8) | 202, (char *) hifr);
+    {
+        do
+            rc = TUNTAP_IOCtl (fd, ('T' << 8) | 202, (char *) hifr);
+        while (0 > rc && EINTR == errno);
+    }
 
     /* kludge for EPERM and linux 2.6.18 */
     if (0 > rc && errno == EPERM && !(IFF_NO_HERCIFC & iFlags))
