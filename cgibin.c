@@ -1888,14 +1888,11 @@ void cgibin_api_v1_devices(WEBBLK *webblk)
     DEVBLK *dev;
     char   *devclass;
     char    devnam[MAX_PATH];
-    int     count=0;
-    int     total=0;
+    int     first=1;
     int     l, p;
 
     json_header(webblk);
     hprintf(webblk->sock,"{\"devices\":[");
-    for(dev = sysblk.firstdev; dev; dev = dev->nextdev)
-        total++;
 
     for(dev = sysblk.firstdev; dev; dev = dev->nextdev)
     {
@@ -1913,6 +1910,9 @@ void cgibin_api_v1_devices(WEBBLK *webblk)
                 }
             }
 
+            hprintf(webblk->sock, "%s", (first ? "" : ","));
+            first = 0;
+
             hprintf(webblk->sock,
                 "{\"devnum\":\"%4.4X\","
                 "\"subchannel\":\"%4.4X\","
@@ -1929,11 +1929,8 @@ void cgibin_api_v1_devices(WEBBLK *webblk)
 
             json_escape_string(webblk->sock, devnam);
 
-            hprintf(webblk->sock, "}%s",
-                (count == total - 1 ? "" : ","));
-
+            hprintf(webblk->sock, "}");
         }
-        count++;
     }
 
     hprintf(webblk->sock,"]}");
